@@ -1,74 +1,67 @@
-import React, { useState } from 'react';
-import ReactFlow, { Background, Controls } from 'reactflow';
+import React from 'react';
+import ReactFlow, {
+  Background,
+  Controls,
+  MiniMap,
+  useNodesState,
+  useEdgesState,
+  addEdge,
+} from 'reactflow';
 import 'reactflow/dist/style.css';
 
-import EditableNode from './EditableNode';
+const initialNodes = [
+  {
+    id: 'C1',
+    data: { label: 'Gradient Descent' },
+    position: { x: 0, y: 0 },
+  },
+  {
+    id: 'C2',
+    data: { label: 'Convexity Assumptions' },
+    position: { x: 250, y: -100 },
+  },
+  {
+    id: 'C3',
+    data: { label: 'Learning Rate' },
+    position: { x: 250, y: 100 },
+  },
+];
 
-const nodeTypes = {
-  editable: EditableNode,
-};
+const initialEdges = [
+  {
+    id: 'e1',
+    source: 'C1',
+    target: 'C2',
+    label: 'depends_on',
+  },
+  {
+    id: 'e2',
+    source: 'C1',
+    target: 'C3',
+    label: 'depends_on',
+  },
+];
 
 export default function App() {
-  const [nodes, setNodes] = useState([
-    {
-      id: 'C1',
-      type: 'editable',
-      data: {
-        label: 'Gradient Descent',
-        onChange: (val) =>
-          setNodes((nds) =>
-            nds.map((n) =>
-              n.id === 'C1' ? { ...n, data: { ...n.data, label: val } } : n
-            )
-          ),
-      },
-      position: { x: 0, y: 0 },
-    },
-    {
-      id: 'C2',
-      type: 'editable',
-      data: {
-        label: 'Convexity Assumptions',
-        onChange: (val) =>
-          setNodes((nds) =>
-            nds.map((n) =>
-              n.id === 'C2' ? { ...n, data: { ...n.data, label: val } } : n
-            )
-          ),
-      },
-      position: { x: 250, y: -100 },
-    },
-    {
-      id: 'C3',
-      type: 'editable',
-      data: {
-        label: 'Learning Rate',
-        onChange: (val) =>
-          setNodes((nds) =>
-            nds.map((n) =>
-              n.id === 'C3' ? { ...n, data: { ...n.data, label: val } } : n
-            )
-          ),
-      },
-      position: { x: 250, y: 100 },
-    },
-  ]);
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
 
-  const edges = [
-    { id: 'e1', source: 'C1', target: 'C2', label: 'depends_on' },
-    { id: 'e2', source: 'C1', target: 'C3', label: 'depends_on' },
-  ];
+  const onConnect = (params) =>
+    setEdges((eds) => addEdge(params, eds));
 
   return (
     <div style={{ width: '100vw', height: '100vh' }}>
       <ReactFlow
         nodes={nodes}
         edges={edges}
-        nodeTypes={nodeTypes}
+        onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
+        onConnect={onConnect}
         fitView
       >
-        <Background />
+        <MiniMap />
         <Controls />
+        <Background />
       </ReactFlow>
     </div>
   );
