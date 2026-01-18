@@ -12,6 +12,7 @@ archspec @ file:///croot/archspec_1709217642129/work
 attrs==25.4.0
 audioop-lts==0.2.2
 beautifulsoup4==4.14.2
+blinker==1.9.0
 boltons @ file:///private/var/folders/k1/30mswbxs7r1g6zwn8y4fyt500000gp/T/abs_97h34kncb9/croot/boltons_1751383736162/work
 Bottleneck @ file:///private/var/folders/nz/j6p8yfhx1mv_0grj5xl4650h0000gp/T/abs_55txi4fy1u/croot/bottleneck_1731058642212/work
 brotlicffi @ file:///private/var/folders/k1/30mswbxs7r1g6zwn8y4fyt500000gp/T/abs_b5py2dr5ag/croot/brotlicffi_1736182482518/work
@@ -37,6 +38,8 @@ dotenv==0.9.9
 exceptiongroup @ file:///home/conda/feedstock_root/build_artifacts/exceptiongroup_1746947292760/work
 fastapi==0.125.0
 filelock==3.20.3
+Flask==3.1.2
+flask-cors==6.0.2
 fonttools @ file:///opt/miniconda3/conda-bld/fonttools_1759754874393/work
 frozendict @ file:///Users/builder/cbouss/perseverance-python-buildout/croot/frozendict_1728605521897/work
 frozenlist==1.8.0
@@ -50,6 +53,7 @@ httpx-sse==0.4.3
 hyperframe @ file:///home/conda/feedstock_root/build_artifacts/hyperframe_1737618333194/work
 idna @ file:///Users/builder/cbouss/perseverance-python-buildout/croot/idna_1728585920859/work
 imbalanced-learn @ file:///home/conda/feedstock_root/build_artifacts/imbalanced-learn_1755182897649/work
+itsdangerous==2.2.0
 jaraco.classes @ file:///private/var/folders/nz/j6p8yfhx1mv_0grj5xl4650h0000gp/T/abs_97dr4u6nc1/croot/jaraco.classes_1755516335437/work
 jaraco.context @ file:///Users/builder/cbouss/perseverance-python-buildout/croot/jaraco.context_1731716684676/work
 jaraco.functools @ file:///private/var/folders/nz/j6p8yfhx1mv_0grj5xl4650h0000gp/T/abs_91zaq5_008/croot/jaraco.functools_1740408121405/work
@@ -146,6 +150,7 @@ typing_extensions @ file:///private/var/folders/k1/30mswbxs7r1g6zwn8y4fyt500000g
 tzdata @ file:///croot/python-tzdata_1746123641790/work
 urllib3 @ file:///private/var/folders/k1/30mswbxs7r1g6zwn8y4fyt500000gp/T/abs_95v32ztwo_/croot/urllib3_1750775480393/work
 uuid==1.30
+Werkzeug==3.1.5
 wheel==0.45.1
 whisper==1.1.10
 wikipedia==1.4.0
