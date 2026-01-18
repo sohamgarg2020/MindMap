@@ -1,4 +1,5 @@
 # Mappit!
+
 ## Inspiration
 Information today is increasingly consumed through audio—lectures, meetings, podcasts, and interviews—but audio is inherently linear and difficult to revisit. We were inspired by the question: **what if spoken ideas could be transformed into structured, visual workflows automatically?**  
 We wanted to help students, researchers, and creators turn dense audio into something explorable, skimmable, and actionable.
