@@ -1,2 +1,11 @@
 backend/.env
 backend/venv
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Local uploads / big files
+uploads/
+*.mp3
+*.m4a
