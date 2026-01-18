@@ -529,7 +529,7 @@ export default function App() {
       <div style={sidebarStyle}>
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-          <h1 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', margin: 0 }}>Mind Map</h1>
+          <h1 style={{ fontSize: '18px', fontWeight: '600', color: '#111827', margin: 0 }}>Mappit!</h1>
           <button onClick={addNode} style={{ ...primaryBtnStyle, padding: '6px 12px', fontSize: '14px', width: 'auto', height: 'auto' }}>New Node | +</button>
         </div>
 
