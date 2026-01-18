@@ -1,5 +1,5 @@
 from dotenv import load_dotenv
-from langchain_community.chat_models import ChatOpenAI
+from langchain_openai import ChatOpenAI
 from langchain.prompts import ChatPromptTemplate
 import json
 import re
@@ -8,91 +8,76 @@ load_dotenv()
 
 llm = ChatOpenAI(
     model="gpt-4o",
-    temperature=0.8
+    temperature=0.6
 )
 
 def clean_json_response(text: str) -> str:
     """Remove markdown code blocks and extract JSON."""
-    # Remove markdown code blocks
     text = re.sub(r'```json\s*', '', text)
     text = re.sub(r'```\s*', '', text)
     return text.strip()
 
+def estimate_lecture_minutes(text: str) -> int:
+    """Rough estimate: ~150 words per minute of speech."""
+    word_count = len(text.split())
+    return max(1, word_count // 150)
+
 def extract_concepts(lecture_text: str):
     """
-    Two-pass concept extraction:
-    1) Over-generate candidate ideas
-    2) Refine into structured concepts
+    Single-pass concept extraction with dynamic scaling based on lecture length.
+    Target: 2-3 concepts per 5 minutes of content.
     """
+    
+    lecture_minutes = estimate_lecture_minutes(lecture_text)
+    target_concepts = max(3, min(15, (lecture_minutes // 5) * 2 + 1))
+    
+    print(f"Estimated lecture length: ~{lecture_minutes} minutes")
+    print(f"Target concepts: {target_concepts}")
 
-    candidate_prompt = ChatPromptTemplate.from_template("""
-You are extracting key terms from a lecture transcript.
+    concept_prompt = ChatPromptTemplate.from_template("""
+You are extracting the CORE concepts from a lecture transcript.
 
-INSTRUCTIONS:
-- Extract ALL significant terms, concepts, ideas, frameworks, and themes
-- Include technical terms, named concepts, and abstract ideas
-- Include both explicit terms AND implicit themes
-- Aim for 15-30 candidates
-- Return ONLY a JSON array of strings
-- Do NOT include any explanation or markdown formatting
+LECTURE LENGTH: ~{lecture_minutes} minutes
+TARGET: Extract exactly {target_concepts} concepts (no more, no less)
+
+SELECTION CRITERIA - Choose concepts that are:
+1. **Repeatedly mentioned** or discussed in depth
+2. **Central to understanding** the main topic
+3. **Abstract frameworks or principles** (not just examples or anecdotes)
+4. **Well-connected** to other ideas in the lecture (will have 2-3 connections each)
+
+AVOID:
+- Minor examples, case studies, or passing mentions
+- Overly specific details or edge cases
+- Isolated ideas with no clear connections
+- Redundant or overlapping concepts
 
 LECTURE TEXT:
 {lecture_text}
 
-OUTPUT (JSON array only):
-""")
-
-    candidate_chain = candidate_prompt | llm
-    candidate_response = candidate_chain.invoke(
-        {"lecture_text": lecture_text}
-    )
-
-    try:
-        cleaned = clean_json_response(candidate_response.content)
-        candidates = json.loads(cleaned)
-        if not isinstance(candidates, list):
-            print(f"Warning: Expected list, got {type(candidates)}")
-            return []
-    except json.JSONDecodeError as e:
-        print(f"JSON decode error in candidates: {e}")
-        print(f"Response was: {candidate_response.content[:200]}")
-        return []
-    
-    print(f"Found {len(candidates)} candidates")
-    
-    if not candidates:
-        return []
-
-    concept_prompt = ChatPromptTemplate.from_template("""
-You are refining candidate terms into structured lecture concepts.
-
-CANDIDATE TERMS:
-{candidates}
-
-LECTURE CONTEXT:
-{lecture_text}
-
 INSTRUCTIONS:
-1. Select 8-15 of the MOST IMPORTANT concepts from the candidates
-2. For each concept, determine:
-   - A clear, concise label (2-5 words)
-   - The concept type (choose ONE: definition, framework, theme, distinction, worldview, example, algorithm, assumption, parameter)
-   - A one-sentence description (under 20 words)
-   - Popularity score (1-5, where 5 = central to lecture, 1 = briefly mentioned)
+For each of the {target_concepts} concepts, provide:
 
-3. Prioritize concepts that are:
-   - Central to the lecture's main argument
-   - Repeatedly discussed or referenced
-   - Abstract or technical (not just examples)
+1. **label**: Clear name (2-4 words, capitalize properly)
+2. **type**: ONE of [framework, theme, definition, distinction, worldview, algorithm, principle]
+3. **description**: One sentence (max 15 words)
+4. **popularity**: Score based on:
+   - 5 = Core thesis, mentioned 5+ times, absolutely central
+   - 4 = Major supporting idea, mentioned 3-4 times
+   - 3 = Important concept, mentioned 2-3 times
+   - 2 = Supporting detail, mentioned 1-2 times
+   - 1 = Rarely use this (only for brief but important mentions)
 
-OUTPUT FORMAT:
-Return ONLY a valid JSON array with NO markdown formatting or explanation.
+DISTRIBUTION GUIDE:
+- Aim for 1-2 concepts at popularity 5
+- Most concepts should be 3-4
+- Avoid having too many at 1-2
 
-SCHEMA:
+OUTPUT FORMAT (JSON array only, no markdown or explanation):
 [
   {{
     "id": "C1",
-    "label": "concept name here",
+    "label": "Concept Name",
     "type": "framework",
     "description": "Brief explanation here.",
     "popularity": 4
@@ -105,20 +90,40 @@ JSON OUTPUT:
     concept_chain = concept_prompt | llm
     response = concept_chain.invoke(
         {
-            "lecture_text": lecture_text[:2000],  # Limit context to avoid token limits
-            "candidates": json.dumps(candidates),
+            "lecture_text": lecture_text[:4000],
+            "lecture_minutes": lecture_minutes,
+            "target_concepts": target_concepts
         }
     )
 
     try:
         cleaned = clean_json_response(response.content)
         concepts = json.loads(cleaned)
+        
         if not isinstance(concepts, list):
             print(f"Warning: Expected list, got {type(concepts)}")
             return []
-        print(f"Extracted {len(concepts)} concepts")
+        
+        concepts = concepts[:target_concepts + 2]
+        
+        if len(concepts) > 5:
+            concepts = [c for c in concepts if c.get("popularity", 0) >= 2]
+        
+        for i, c in enumerate(concepts):
+            if "id" not in c or not c["id"]:
+                c["id"] = f"C{i+1}"
+        
+        print(f"✓ Extracted {len(concepts)} concepts")
+        
+        pop_counts = {}
+        for c in concepts:
+            pop = c.get("popularity", 3)
+            pop_counts[pop] = pop_counts.get(pop, 0) + 1
+        print(f"  Popularity: {dict(sorted(pop_counts.items(), reverse=True))}")
+        
         return concepts
+        
     except json.JSONDecodeError as e:
-        print(f"JSON decode error in concepts: {e}")
-        print(f"Response was: {response.content[:200]}")
+        print(f"JSON decode error: {e}")
+        print(f"Response was: {response.content[:300]}")
         return []
