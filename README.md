@@ -58,7 +58,7 @@ ANTHROPIC_API_KEY=your_anthropic_api_key_here  # if using Claude
 **Start the backend server:**
 ```bash
 cd backend
-python app.py
+python api.py
 ```
 
 **In a new terminal, start the frontend:**
